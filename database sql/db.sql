@@ -1,7 +1,7 @@
 -- 1. Membuat Database Baru (Jalankan ini terpisah atau pastikan db sudah ada)
--- CREATE DATABASE habit_tracker_db;
+-- CREATE DATABASE HABITTRACK
 -- GO
--- USE habit_tracker_db;
+-- USE HABITTRACK
 -- GO
 
 -- Tabel Users
