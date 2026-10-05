@@ -3,118 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BiBa Tracker - Habit Tracker</title>
+  <title>BiBa Tracker</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="app-shell">
     
-    <!-- Navbar -->
-    <header class="navbar">
-      <div class="brand">
-        <div class="brand-icon">B</div>
-        <div>
-          <div style="display: flex; align-items: center;">
-            <span class="brand-title">BiBa Tracker</span>
-            <span class="brand-tag">v1.0</span>
+    <!-- Top Bar Navigation (Full Width) -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand-group">
+          <div class="brand-mark" aria-hidden="true">B</div>
+          <div class="brand-info">
+            <div class="brand-title-row">
+              <span class="brand-title">BiBa Tracker</span>
+              <span class="brand-version">v1.0</span>
+            </div>
+            <span class="brand-subtitle">Pemantau konsistensi dan rutinitas harian</span>
           </div>
-          <div class="brand-sub">Daily routine and streak monitor</div>
-        </div>
-      </div>
-
-      <!-- Profile Selector -->
-      <div style="position: relative;">
-        <div class="profile-pill" onclick="toggleProfileDropdown()">
-          <div class="avatar-circle" id="profile-avatar">B</div>
-          <span class="profile-name" id="current-profile-name">Bagas</span>
-          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--muted);">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
         </div>
 
-        <!-- Profile Dropdown Menu -->
-        <div id="profile-dropdown" class="profile-dropdown hidden">
-          <div class="dropdown-header">Ganti Profil</div>
-          <div id="profile-list-items">
-            <!-- Injected by JS -->
-          </div>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-btn" onclick="promptAddProfile()">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        <!-- Profile Selector Trigger -->
+        <div class="profile-wrapper">
+          <button id="profile-toggle-btn" class="profile-btn" onclick="toggleProfileDropdown()" aria-haspopup="true" aria-expanded="false" aria-label="Ganti profil pengguna">
+            <span class="avatar-badge" id="profile-avatar-initial" aria-hidden="true">B</span>
+            <span class="profile-btn-label" id="profile-btn-name">Bagas</span>
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
             </svg>
-            Tambah Profil Baru
           </button>
+
+          <!-- Dropdown Menu -->
+          <div id="profile-menu" class="dropdown-menu hidden" role="menu">
+            <div class="dropdown-label">Pilih Profil</div>
+            <div id="profile-menu-items" class="dropdown-list">
+              <!-- Rendered via JS -->
+            </div>
+            <div class="dropdown-sep"></div>
+            <button class="dropdown-action-btn" onclick="promptCreateProfile()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>Tambah Profil Baru</span>
+            </button>
+            <button class="dropdown-action-btn" onclick="promptRenameProfile()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              <span>Ubah Nama Profil</span>
+            </button>
+            <button class="dropdown-action-btn" style="color: var(--danger);" onclick="confirmDeleteProfile()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              <span>Hapus Profil Ini</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- Progress Card -->
-    <section class="card">
-      <div class="progress-header">
-        <span class="label">Progres Hari Ini (<span id="progress-profile-label">Bagas</span>)</span>
-        <span id="progress-val" class="value">0 / 0 (0%)</span>
-      </div>
-      <div class="progress-bar-bg">
-        <div id="progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
-      </div>
-    </section>
+    <!-- Main Content Grid -->
+    <main class="app-main">
+      <div class="layout-grid">
+        
+        <!-- Left Column: Overview, Metrics & Filter -->
+        <aside class="sidebar-pane">
+          <!-- Profile Card & Today's Progress -->
+          <div class="panel-card">
+            <div class="profile-card-header">
+              <div class="profile-card-user">
+                <div class="profile-card-avatar" id="sidebar-avatar" aria-hidden="true">B</div>
+                <div>
+                  <div class="profile-card-name" id="sidebar-name">Bagas</div>
+                  <div class="profile-card-status">Profil Aktif</div>
+                </div>
+              </div>
+            </div>
 
-    <!-- Metrics Row -->
-    <section class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Total Habit</div>
-        <div id="metric-total" class="metric-value">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Streak Tertinggi</div>
-        <div id="metric-streak" class="metric-value">0 <span class="unit">hari</span></div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Tingkat Konsistensi</div>
-        <div id="metric-rate" class="metric-value">0%</div>
-      </div>
-    </section>
+            <!-- Progress Block -->
+            <div class="progress-block">
+              <div class="progress-info">
+                <span class="progress-info-label">Penyelesaian Hari Ini</span>
+                <span class="progress-info-val" id="val-progress-text">0 / 0 (0%)</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <div class="progress-fill" id="val-progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
 
-    <!-- Habit Section -->
-    <div class="section-header">
-      <span class="section-title">Daftar Kebiasaan</span>
-      <button onclick="toggleAddForm()" class="btn btn-primary">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-        </svg>
-        Tambah Kebiasaan
-      </button>
-    </div>
+            <!-- Metrics Row -->
+            <div class="metrics-row">
+              <div class="metric-cell">
+                <div class="metric-cell-label">Total Habit</div>
+                <div class="metric-cell-value" id="val-total-habits">0</div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-cell-label">Streak Rekor</div>
+                <div class="metric-cell-value" id="val-max-streak">0 <span class="unit">hari</span></div>
+              </div>
+              <div class="metric-cell">
+                <div class="metric-cell-label">Konsistensi</div>
+                <div class="metric-cell-value" id="val-rate">0%</div>
+              </div>
+            </div>
+          </div>
 
-    <!-- Collapsible Add Form -->
-    <div id="add-form" class="form-card hidden">
-      <form onsubmit="handleCreateHabit(event)">
-        <div class="form-row">
-          <input type="text" id="habit-name-input" class="input" placeholder="Nama kebiasaan (contoh: Minum air putih 2 liter)..." required style="flex: 2;">
-          <select id="habit-cat-input" class="select" style="flex: 1;">
-            <option value="Kesehatan">Kesehatan</option>
-            <option value="Belajar">Belajar</option>
-            <option value="Produktivitas">Produktivitas</option>
-            <option value="Finansial">Finansial</option>
-            <option value="Lainnya">Lainnya</option>
-          </select>
-          <select id="habit-freq-input" class="select" style="flex: 1;">
-            <option value="daily">Harian</option>
-            <option value="weekly">Mingguan</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="button" onclick="toggleAddForm()" class="btn btn-text">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan</button>
-        </div>
-      </form>
-    </div>
+          <!-- Frequency Filter Controls -->
+          <div class="panel-card">
+            <div class="section-toolbar" style="margin-bottom: 8px;">
+              <span class="section-heading">Filter Frekuensi</span>
+            </div>
+            <div class="filter-bar" role="tablist">
+              <button class="filter-btn is-active" id="filter-btn-all" onclick="setFilter('all')" role="tab" aria-selected="true">Semua</button>
+              <button class="filter-btn" id="filter-btn-daily" onclick="setFilter('daily')" role="tab" aria-selected="false">Harian</button>
+              <button class="filter-btn" id="filter-btn-weekly" onclick="setFilter('weekly')" role="tab" aria-selected="false">Mingguan</button>
+            </div>
+          </div>
+        </aside>
 
-    <!-- Habit List -->
-    <div id="habit-list" class="habit-list">
-      <!-- Habit items injected by JS -->
-    </div>
+        <!-- Right Column: Habits Feed & Action -->
+        <section class="content-pane">
+          <!-- Toolbar -->
+          <div class="section-toolbar">
+            <h1 class="section-heading">Daftar Kebiasaan</h1>
+            <button class="btn btn-primary" onclick="toggleAddForm()" id="btn-toggle-add">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>Tambah Kebiasaan</span>
+            </button>
+          </div>
+
+          <!-- Inline Add Form Panel (Collapsible) -->
+          <div class="form-panel hidden" id="panel-add-form">
+            <form onsubmit="handleFormCreate(event)">
+              <div class="form-grid">
+                <div>
+                  <label for="input-habit-name" class="metric-cell-label" style="display: block; margin-bottom: 6px;">Nama Kebiasaan</label>
+                  <input type="text" id="input-habit-name" class="form-input" placeholder="Contoh: Jalan pagi 15 menit..." required>
+                </div>
+                <div>
+                  <label for="select-habit-category" class="metric-cell-label" style="display: block; margin-bottom: 6px;">Kategori</label>
+                  <select id="select-habit-category" class="form-select">
+                    <option value="Kesehatan">Kesehatan</option>
+                    <option value="Belajar">Belajar</option>
+                    <option value="Produktivitas">Produktivitas</option>
+                    <option value="Finansial">Finansial</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="select-habit-frequency" class="metric-cell-label" style="display: block; margin-bottom: 6px;">Frekuensi</label>
+                  <select id="select-habit-frequency" class="form-select">
+                    <option value="daily">Harian</option>
+                    <option value="weekly">Mingguan</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-footer">
+                <button type="button" class="btn btn-ghost" onclick="toggleAddForm()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Kebiasaan</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Habit Cards Feed -->
+          <div class="habits-container" id="feed-habit-cards">
+            <!-- Injected by JS -->
+          </div>
+        </section>
+
+      </div>
+    </main>
 
   </div>
 

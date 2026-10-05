@@ -24,7 +24,7 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 760,
-    minWidth: 480,
+    minWidth: 440,
     minHeight: 600,
     title: 'Habit Tracker BiBa',
     autoHideMenuBar: true,
