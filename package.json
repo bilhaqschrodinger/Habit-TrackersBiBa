@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "server": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "dist": "electron-builder --win"
   },
   "repository": {
     "type": "git",
@@ -22,15 +23,39 @@
   "homepage": "https://github.com/bilhaqschrodinger/Habit-TrackersBiBa#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mssql": "^12.5.5"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
     "nodemon": "^3.1.14"
+  },
+  "build": {
+    "appId": "com.biba.habittracker",
+    "productName": "Habit Tracker BiBa",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!*.db",
+      "!habittrack.json"
+    ]
   }
 }

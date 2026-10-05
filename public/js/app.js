@@ -1,81 +1,136 @@
 // public/js/app.js
 
-const token = localStorage.getItem('token');
-const userStr = localStorage.getItem('user');
-let currentUser = userStr ? JSON.parse(userStr) : null;
-
-// Local fallback store if backend habits endpoint is still in progress
-const LOCAL_STORAGE_HABITS_KEY = `biba_habits_${currentUser ? currentUser.id : 'guest'}`;
-
+let profiles = [];
+let activeProfile = null;
 let habits = [];
 
-// 1. Guard & Inisialisasi
-document.addEventListener('DOMContentLoaded', () => {
-  if (!token) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  // Display user name
-  if (currentUser && currentUser.username) {
-    document.getElementById('user-display-name').textContent = currentUser.username;
-  }
-
-  loadHabits();
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadProfiles();
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('profile-dropdown');
+    const pill = e.target.closest('.profile-pill');
+    if (!pill && dropdown && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
 });
 
-function handleLogout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.href = 'login.html';
+// 1. MANAJEMEN PROFIL
+async function loadProfiles() {
+  try {
+    const res = await fetch('/api/profiles');
+    if (res.ok) {
+      profiles = await res.json();
+    }
+  } catch (err) {
+    console.warn("Gagal fetch profiles, fallback local");
+    profiles = [{ id: 1, name: "Bagas" }];
+  }
+
+  if (profiles.length === 0) {
+    profiles = [{ id: 1, name: "Bagas" }];
+  }
+
+  // Cek active profile di localStorage
+  const savedProfileId = localStorage.getItem('active_profile_id');
+  activeProfile = profiles.find(p => p.id === Number(savedProfileId)) || profiles[0];
+  localStorage.setItem('active_profile_id', activeProfile.id);
+
+  updateProfileUI();
+  await loadHabits();
 }
 
-function toggleAddForm() {
-  const form = document.getElementById('add-form');
-  form.classList.toggle('hidden');
-  if (!form.classList.contains('hidden')) {
-    document.getElementById('habit-name-input').focus();
+function updateProfileUI() {
+  const avatarEl = document.getElementById('profile-avatar');
+  const nameEl = document.getElementById('current-profile-name');
+  const labelEl = document.getElementById('progress-profile-label');
+
+  const initial = activeProfile.name.charAt(0).toUpperCase() || 'U';
+  avatarEl.textContent = initial;
+  nameEl.textContent = activeProfile.name;
+  labelEl.textContent = activeProfile.name;
+
+  renderProfileDropdownItems();
+}
+
+function toggleProfileDropdown() {
+  const dropdown = document.getElementById('profile-dropdown');
+  dropdown.classList.toggle('hidden');
+}
+
+function renderProfileDropdownItems() {
+  const listEl = document.getElementById('profile-list-items');
+  listEl.innerHTML = '';
+
+  profiles.forEach(p => {
+    const item = document.createElement('div');
+    const isActive = p.id === activeProfile.id;
+    item.className = `profile-item ${isActive ? 'active' : ''}`;
+    item.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="avatar-circle" style="width: 16px; height: 16px; font-size: 9px; ${isActive ? '' : 'background-color: var(--muted);'}">
+          ${p.name.charAt(0).toUpperCase()}
+        </div>
+        <span>${escapeHtml(p.name)}</span>
+      </div>
+      ${isActive ? '<span style="font-size: 10px; color: var(--accent);">Aktif</span>' : ''}
+    `;
+
+    item.onclick = () => selectProfile(p.id);
+    listEl.appendChild(item);
+  });
+}
+
+async function selectProfile(profileId) {
+  activeProfile = profiles.find(p => p.id === profileId);
+  if (activeProfile) {
+    localStorage.setItem('active_profile_id', activeProfile.id);
+    updateProfileUI();
+    document.getElementById('profile-dropdown').classList.add('hidden');
+    await loadHabits();
   }
 }
 
-// 2. Load Habits (API first, fallback to LocalStorage)
-async function loadHabits() {
-  try {
-    const res = await fetch('/api/habits', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+async function promptAddProfile() {
+  const name = prompt("Masukkan nama profil baru:");
+  if (!name || !name.trim()) return;
 
+  try {
+    const res = await fetch('/api/profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim() })
+    });
+    if (res.ok) {
+      const newP = await res.json();
+      profiles.push(newP);
+      await selectProfile(newP.id);
+    }
+  } catch (err) {
+    alert("Gagal menambahkan profil.");
+  }
+}
+
+// 2. MANAJEMEN HABITS
+async function loadHabits() {
+  if (!activeProfile) return;
+
+  try {
+    const res = await fetch(`/api/habits?profileId=${activeProfile.id}`);
     if (res.ok) {
       habits = await res.json();
     } else {
-      // Fallback to local storage if endpoint /api/habits is not yet created in backend
-      const saved = localStorage.getItem(LOCAL_STORAGE_HABITS_KEY);
-      habits = saved ? JSON.parse(saved) : getDefaultHabits();
+      habits = [];
     }
   } catch (err) {
-    const saved = localStorage.getItem(LOCAL_STORAGE_HABITS_KEY);
-    habits = saved ? JSON.parse(saved) : getDefaultHabits();
+    habits = [];
   }
 
-  saveLocalHabits();
   renderHabits();
 }
 
-function getDefaultHabits() {
-  return [
-    { id: 1, name: "Membaca dokumentasi teknis 30 menit", category: "Belajar", frequency: "daily", current_streak: 5, done: true },
-    { id: 2, name: "Jogging atau olahraga ringan", category: "Kesehatan", frequency: "daily", current_streak: 4, done: true },
-    { id: 3, name: "Minum air 2 liter per hari", category: "Kesehatan", frequency: "daily", current_streak: 2, done: false }
-  ];
-}
-
-function saveLocalHabits() {
-  localStorage.setItem(LOCAL_STORAGE_HABITS_KEY, JSON.stringify(habits));
-}
-
-// 3. Render Habits & Update Metrics
 function renderHabits() {
   const listEl = document.getElementById('habit-list');
   listEl.innerHTML = '';
@@ -83,7 +138,7 @@ function renderHabits() {
   if (habits.length === 0) {
     listEl.innerHTML = `
       <div class="empty-state">
-        Belum ada kebiasaan yang dibuat. Klik tombol "+ Tambah Kebiasaan" di atas untuk memulai.
+        Belum ada kebiasaan untuk profil <b>${escapeHtml(activeProfile.name)}</b>. Klik "+ Tambah Kebiasaan" di atas untuk memulai.
       </div>
     `;
     updateMetrics();
@@ -137,36 +192,14 @@ function updateMetrics() {
   document.getElementById('progress-fill').style.width = `${percent}%`;
 }
 
-// 4. Check-in Toggle
-async function toggleCheckHabit(id) {
-  const habit = habits.find(h => h.id === id);
-  if (!habit) return;
-
-  const nextDone = !habit.done;
-  habit.done = nextDone;
-  habit.current_streak = nextDone
-    ? (habit.current_streak || 0) + 1
-    : Math.max(0, (habit.current_streak || 1) - 1);
-
-  // Try API check-in if backend exists
-  try {
-    await fetch(`/api/habits/${id}/checkin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ done: nextDone })
-    });
-  } catch (err) {
-    // Ignore network/404 error, rely on local state
+function toggleAddForm() {
+  const form = document.getElementById('add-form');
+  form.classList.toggle('hidden');
+  if (!form.classList.contains('hidden')) {
+    document.getElementById('habit-name-input').focus();
   }
-
-  saveLocalHabits();
-  renderHabits();
 }
 
-// 5. Create Habit
 async function handleCreateHabit(e) {
   e.preventDefault();
 
@@ -178,61 +211,69 @@ async function handleCreateHabit(e) {
   const category = catInput.value;
   const frequency = freqInput.value;
 
-  if (!name) return;
-
-  const newHabit = {
-    id: Date.now(),
-    name,
-    category,
-    frequency,
-    current_streak: 0,
-    done: false
-  };
+  if (!name || !activeProfile) return;
 
   try {
     const res = await fetch('/api/habits', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ name, category, frequency })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        profile_id: activeProfile.id,
+        name,
+        category,
+        frequency
+      })
     });
 
     if (res.ok) {
-      const data = await res.json();
-      newHabit.id = data.id || newHabit.id;
+      const created = await res.json();
+      habits.unshift(created);
     }
   } catch (err) {
-    // Rely on local storage
+    alert("Gagal menambahkan kebiasaan.");
   }
-
-  habits.unshift(newHabit);
-  saveLocalHabits();
 
   nameInput.value = '';
   toggleAddForm();
   renderHabits();
 }
 
-// 6. Delete Habit
+async function toggleCheckHabit(id) {
+  const habit = habits.find(h => h.id === id);
+  if (!habit) return;
+
+  try {
+    const res = await fetch(`/api/habits/${id}/checkin`, {
+      method: 'POST'
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      habit.done = data.done;
+      habit.current_streak = data.current_streak;
+      habit.longest_streak = data.longest_streak;
+      renderHabits();
+    }
+  } catch (err) {
+    console.error("Gagal check-in:", err);
+  }
+}
+
 async function deleteHabit(id) {
   if (!confirm('Apakah Anda yakin ingin menghapus kebiasaan ini?')) return;
 
   try {
-    await fetch(`/api/habits/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const res = await fetch(`/api/habits/${id}`, {
+      method: 'DELETE'
     });
-  } catch (err) {
-    // Ignore error, update state
-  }
 
-  habits = habits.filter(h => h.id !== id);
-  saveLocalHabits();
-  renderHabits();
+    if (res.ok) {
+      habits = habits.filter(h => h.id !== id);
+      renderHabits();
+    }
+  } catch (err) {
+    alert("Gagal menghapus kebiasaan.");
+  }
 }
 
 function escapeHtml(text) {

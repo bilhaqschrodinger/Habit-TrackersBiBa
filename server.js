@@ -11,15 +11,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes API
-const authRoutes = require('./auth');
+const profileRoutes = require('./routes/profiles');
 const habitRoutes = require('./routes/habits');
 
-app.use('/api/auth', authRoutes);
+app.use('/api/profiles', profileRoutes);
 app.use('/api/habits', habitRoutes);
 
 // Healthcheck API
 app.get('/api', (req, res) => {
-    res.json({ message: "Backend Habit Tracker BiBa Siap (SQLite Mode)!" });
+    res.json({ message: "Backend Habit Tracker BiBa Siap (Profile Mode)!" });
 });
 
 function startServer(port = process.env.PORT || 5000) {
@@ -31,7 +31,6 @@ function startServer(port = process.env.PORT || 5000) {
     });
 }
 
-// Jalankan langsung jika file dieksekusi dengan `node server.js`
 if (require.main === module) {
     startServer();
 }

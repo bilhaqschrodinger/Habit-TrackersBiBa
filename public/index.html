@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BiBa Tracker - Dashboard</title>
+  <title>BiBa Tracker - Habit Tracker</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,18 +22,37 @@
         </div>
       </div>
 
-      <div class="user-nav">
-        <span class="user-badge">User: <strong id="user-display-name">-</strong></span>
-        <button onclick="handleLogout()" class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;">
-          Keluar
-        </button>
+      <!-- Profile Selector -->
+      <div style="position: relative;">
+        <div class="profile-pill" onclick="toggleProfileDropdown()">
+          <div class="avatar-circle" id="profile-avatar">B</div>
+          <span class="profile-name" id="current-profile-name">Bagas</span>
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--muted);">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </div>
+
+        <!-- Profile Dropdown Menu -->
+        <div id="profile-dropdown" class="profile-dropdown hidden">
+          <div class="dropdown-header">Ganti Profil</div>
+          <div id="profile-list-items">
+            <!-- Injected by JS -->
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-btn" onclick="promptAddProfile()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Profil Baru
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- Progress Card -->
     <section class="card">
       <div class="progress-header">
-        <span class="label">Progres Harian</span>
+        <span class="label">Progres Hari Ini (<span id="progress-profile-label">Bagas</span>)</span>
         <span id="progress-val" class="value">0 / 0 (0%)</span>
       </div>
       <div class="progress-bar-bg">
@@ -72,7 +91,7 @@
     <div id="add-form" class="form-card hidden">
       <form onsubmit="handleCreateHabit(event)">
         <div class="form-row">
-          <input type="text" id="habit-name-input" class="input" placeholder="Nama kebiasaan (contoh: Membaca buku 20 menit)..." required style="flex: 2;">
+          <input type="text" id="habit-name-input" class="input" placeholder="Nama kebiasaan (contoh: Minum air putih 2 liter)..." required style="flex: 2;">
           <select id="habit-cat-input" class="select" style="flex: 1;">
             <option value="Kesehatan">Kesehatan</option>
             <option value="Belajar">Belajar</option>
