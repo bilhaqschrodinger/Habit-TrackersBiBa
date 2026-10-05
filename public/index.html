@@ -64,13 +64,13 @@
                 <!-- Rendered via JS -->
               </div>
               <div class="dropdown-sep"></div>
-              <button class="dropdown-action-btn" onclick="promptCreateProfile()">
+              <button class="dropdown-action-btn" onclick="openProfileModal('create')">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span>Tambah Profil Baru</span>
               </button>
-              <button class="dropdown-action-btn" onclick="promptRenameProfile()">
+              <button class="dropdown-action-btn" onclick="openProfileModal('rename')">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -201,6 +201,28 @@
         </div>
       </main>
 
+    <!-- Modal Profil (Tambah & Ubah Nama) -->
+    <div id="modal-profile" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-profile-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modal-profile-title" class="modal-title">Tambah Profil Baru</h3>
+          <button type="button" class="btn-ghost" onclick="closeProfileModal()" aria-label="Tutup dialog" style="min-height: auto; padding: 4px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <form id="form-profile-modal" onsubmit="handleProfileModalSubmit(event)">
+          <div style="margin-bottom: 16px;">
+            <label for="input-profile-modal-name" class="metric-cell-label" style="display: block; margin-bottom: 6px;">Nama Profil</label>
+            <input type="text" id="input-profile-modal-name" class="form-input" placeholder="Ketik nama profil..." required>
+          </div>
+          <div class="form-footer">
+            <button type="button" class="btn btn-ghost" onclick="closeProfileModal()">Batal</button>
+            <button type="submit" class="btn btn-primary" id="btn-profile-modal-submit">Simpan</button>
+          </div>
+        </form>
+      </div>
     </div>
 
   </div>

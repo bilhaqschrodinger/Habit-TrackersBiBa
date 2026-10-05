@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Keyboard accessibility: Escape closes dropdown or add form
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      const modal = document.getElementById('modal-profile');
+      if (modal && !modal.classList.contains('hidden')) {
+        closeProfileModal();
+        return;
+      }
       const dropdown = document.getElementById('profile-menu');
       if (dropdown && !dropdown.classList.contains('hidden')) {
         dropdown.classList.add('hidden');
@@ -173,46 +178,93 @@ async function selectProfile(id) {
   }
 }
 
-async function promptCreateProfile() {
-  const name = prompt("Nama profil baru:");
-  if (!name || !name.trim()) return;
+let profileModalMode = 'create'; // 'create' | 'rename'
 
-  try {
-    const res = await fetch('/api/profiles', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim() })
-    });
-    if (res.ok) {
-      const created = await res.json();
-      profiles.push(created);
-      await selectProfile(created.id);
-    }
-  } catch (err) {
-    alert("Gagal menambahkan profil baru.");
+function openProfileModal(mode) {
+  profileModalMode = mode;
+  const modal = document.getElementById('modal-profile');
+  const title = document.getElementById('modal-profile-title');
+  const submitBtn = document.getElementById('btn-profile-modal-submit');
+  const input = document.getElementById('input-profile-modal-name');
+
+  // Tutup dropdown menu profil jika terbuka
+  const dropdown = document.getElementById('profile-menu');
+  if (dropdown) dropdown.classList.add('hidden');
+  const toggleBtn = document.getElementById('profile-toggle-btn');
+  if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+
+  if (mode === 'create') {
+    title.textContent = 'Tambah Profil Baru';
+    submitBtn.textContent = 'Tambah Profil';
+    input.value = '';
+    input.placeholder = 'Ketik nama profil baru...';
+  } else {
+    if (!activeProfile) return;
+    title.textContent = 'Ubah Nama Profil';
+    submitBtn.textContent = 'Simpan Perubahan';
+    input.value = activeProfile.name;
+    input.placeholder = 'Ketik nama profil...';
   }
+
+  modal.classList.remove('hidden');
+  setTimeout(() => input.focus(), 50);
 }
 
-async function promptRenameProfile() {
-  if (!activeProfile) return;
-  const newName = prompt("Ubah nama profil:", activeProfile.name);
-  if (!newName || !newName.trim() || newName.trim() === activeProfile.name) return;
+function closeProfileModal() {
+  const modal = document.getElementById('modal-profile');
+  if (modal) modal.classList.add('hidden');
+}
 
-  try {
-    const res = await fetch(`/api/profiles/${activeProfile.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName.trim() })
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      activeProfile.name = updated.name;
-      const idx = profiles.findIndex(p => p.id === activeProfile.id);
-      if (idx !== -1) profiles[idx] = updated;
-      updateProfileViews();
+async function handleProfileModalSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('input-profile-modal-name');
+  const name = input.value.trim();
+  if (!name) return;
+
+  if (profileModalMode === 'create') {
+    try {
+      const res = await fetch('/api/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        profiles.push(created);
+        closeProfileModal();
+        await selectProfile(created.id);
+      } else {
+        alert("Gagal menambahkan profil baru.");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi saat menambah profil.");
     }
-  } catch (err) {
-    alert("Gagal mengubah nama profil.");
+  } else if (profileModalMode === 'rename') {
+    if (!activeProfile) return;
+    if (name === activeProfile.name) {
+      closeProfileModal();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/profiles/${activeProfile.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        activeProfile.name = updated.name;
+        const idx = profiles.findIndex(p => p.id === activeProfile.id);
+        if (idx !== -1) profiles[idx] = updated;
+        closeProfileModal();
+        updateProfileViews();
+      } else {
+        alert("Gagal mengubah nama profil.");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi saat mengubah nama.");
+    }
   }
 }
 
