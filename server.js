@@ -1,41 +1,39 @@
 const express = require('express');
-const mssql = require('mssql');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // Agar server bisa membaca data JSON dari request
+app.use(express.json());
 
-// Konfigurasi koneksi ke SQL Server
-const dbConfig = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_NAME,
-    options: {
-        encrypt: true, // Gunakan true jika kamu pakai Azure, atau set false jika lokal bermasalah
-        trustServerCertificate: true // Penting untuk local development di Windows
-    }
-};
+// Serve static frontend files dari folder public
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Fungsi untuk mengetes koneksi ke SSMS
-mssql.connect(dbConfig)
-    .then(pool => {
-        if (pool.connected) {
-            console.log("✅ Berhasil terhubung ke SQL Server (SSMS)!");
-        }
-    })
-    .catch(err => console.log("❌ Koneksi database gagal: ", err));
+// Routes API
+const authRoutes = require('./auth');
+const habitRoutes = require('./routes/habits');
 
-// Endpoint dasar untuk tes apakah server jalan
-app.get('/', (req, res) => {
-    res.send("Backend Habit Tracker Siap!");
+app.use('/api/auth', authRoutes);
+app.use('/api/habits', habitRoutes);
+
+// Healthcheck API
+app.get('/api', (req, res) => {
+    res.json({ message: "Backend Habit Tracker BiBa Siap (SQLite Mode)!" });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    const authRoutes = require('./auth');
-    app.use('/api/auth', authRoutes);
-    console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
-});
+function startServer(port = process.env.PORT || 5000) {
+    return new Promise((resolve) => {
+        const server = app.listen(port, () => {
+            console.log(`🚀 Server berjalan di http://localhost:${port}`);
+            resolve({ port, server });
+        });
+    });
+}
+
+// Jalankan langsung jika file dieksekusi dengan `node server.js`
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { app, startServer };

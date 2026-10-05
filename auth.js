@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const mssql = require('mssql');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const db = require('./db');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'biba_secret_key_habit_tracker_2026';
 
 // 1. ENDPOINT REGISTER (POST /api/auth/register)
 router.post('/register', async (req, res) => {
@@ -13,29 +15,20 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-        const pool = await mssql.connect();
-        
-        const userCheck = await pool.request()
-            .input('username', mssql.VarChar, username)
-            .input('email', mssql.VarChar, email)
-            .query('SELECT * FROM users WHERE username = @username OR email = @email');
-
-        if (userCheck.recordset.length > 0) {
+        const existing = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
+        if (existing) {
             return res.status(400).json({ message: "Username atau Email sudah digunakan." });
         }
 
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        await pool.request()
-            .input('username', mssql.VarChar, username)
-            .input('email', mssql.VarChar, email)
-            .input('password_hash', mssql.VarChar, passwordHash)
-            .query('INSERT INTO users (username, email, password_hash) VALUES (@username, @email, @password_hash)');
+        const stmt = db.prepare('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)');
+        stmt.run(username, email, passwordHash);
 
         res.status(201).json({ message: "User berhasil didaftarkan!" });
     } catch (err) {
-        console.error(err);
+        console.error("Register error:", err);
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }
 });
@@ -49,33 +42,22 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-        const pool = await mssql.connect();
-
-        // Cari user berdasarkan email
-        const result = await pool.request()
-            .input('email', mssql.VarChar, email)
-            .query('SELECT * FROM users WHERE email = @email');
-
-        if (result.recordset.length === 0) {
+        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        if (!user) {
             return res.status(400).json({ message: "Email atau password salah." });
         }
 
-        const user = result.recordset[0];
-
-        // Bandingkan password yang diketik dengan hash di database
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res.status(400).json({ message: "Email atau password salah." });
         }
 
-        // Jika cocok, buat JWT Token sebagai "tiket masuk" untuk frontend
         const token = jwt.sign(
             { id: user.id, username: user.username },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' } // Token berlaku selama 1 hari
+            JWT_SECRET,
+            { expiresIn: '7d' }
         );
 
-        // Kirim data user dan token ke frontend
         res.json({
             message: "Login berhasil!",
             token,
@@ -87,7 +69,7 @@ router.post('/login', async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("Login error:", err);
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
     }
 });

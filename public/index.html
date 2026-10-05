@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiBa Tracker - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">B</div>
+        <div>
+          <div style="display: flex; align-items: center;">
+            <span class="brand-title">BiBa Tracker</span>
+            <span class="brand-tag">v1.0</span>
+          </div>
+          <div class="brand-sub">Daily routine and streak monitor</div>
+        </div>
+      </div>
+
+      <div class="user-nav">
+        <span class="user-badge">User: <strong id="user-display-name">-</strong></span>
+        <button onclick="handleLogout()" class="btn btn-secondary" style="padding: 5px 10px; font-size: 11px;">
+          Keluar
+        </button>
+      </div>
+    </header>
+
+    <!-- Progress Card -->
+    <section class="card">
+      <div class="progress-header">
+        <span class="label">Progres Harian</span>
+        <span id="progress-val" class="value">0 / 0 (0%)</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+      </div>
+    </section>
+
+    <!-- Metrics Row -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total Habit</div>
+        <div id="metric-total" class="metric-value">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Streak Tertinggi</div>
+        <div id="metric-streak" class="metric-value">0 <span class="unit">hari</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Tingkat Konsistensi</div>
+        <div id="metric-rate" class="metric-value">0%</div>
+      </div>
+    </section>
+
+    <!-- Habit Section -->
+    <div class="section-header">
+      <span class="section-title">Daftar Kebiasaan</span>
+      <button onclick="toggleAddForm()" class="btn btn-primary">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Tambah Kebiasaan
+      </button>
+    </div>
+
+    <!-- Collapsible Add Form -->
+    <div id="add-form" class="form-card hidden">
+      <form onsubmit="handleCreateHabit(event)">
+        <div class="form-row">
+          <input type="text" id="habit-name-input" class="input" placeholder="Nama kebiasaan (contoh: Membaca buku 20 menit)..." required style="flex: 2;">
+          <select id="habit-cat-input" class="select" style="flex: 1;">
+            <option value="Kesehatan">Kesehatan</option>
+            <option value="Belajar">Belajar</option>
+            <option value="Produktivitas">Produktivitas</option>
+            <option value="Finansial">Finansial</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <select id="habit-freq-input" class="select" style="flex: 1;">
+            <option value="daily">Harian</option>
+            <option value="weekly">Mingguan</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="toggleAddForm()" class="btn btn-text">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Habit List -->
+    <div id="habit-list" class="habit-list">
+      <!-- Habit items injected by JS -->
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

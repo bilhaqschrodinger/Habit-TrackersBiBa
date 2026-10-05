@@ -2,9 +2,10 @@
   "name": "habit-trackersbiba",
   "version": "1.0.0",
   "description": "��#\u0000 \u0000H\u0000a\u0000b\u0000i\u0000t\u0000-\u0000T\u0000r\u0000a\u0000c\u0000k\u0000e\u0000r\u0000s\u0000B\u0000i\u0000B\u0000a\u0000\r\u0000 \u0000",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "electron .",
+    "server": "node server.js",
     "dev": "nodemon server.js"
   },
   "repository": {
@@ -21,6 +22,7 @@
   "homepage": "https://github.com/bilhaqschrodinger/Habit-TrackersBiBa#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -28,6 +30,7 @@
     "mssql": "^12.5.5"
   },
   "devDependencies": {
+    "electron": "^44.5.1",
     "nodemon": "^3.1.14"
   }
 }
