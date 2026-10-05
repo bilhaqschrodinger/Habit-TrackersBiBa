@@ -34,21 +34,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// 1. PROFILES MANAGEMENT
+// 1. PROFILES MANAGEMENT & ROUTING
 async function loadProfiles() {
   try {
     const res = await fetch('/api/profiles');
     if (res.ok) {
       profiles = await res.json();
+    } else {
+      profiles = [];
     }
   } catch (err) {
-    console.warn("Gagal memuat profil dari server, menggunakan fallback.");
-    profiles = [{ id: 1, name: "Bagas" }];
+    console.warn("Gagal memuat profil dari server, menggunakan data kosong.");
+    profiles = [];
   }
 
+  const onboardingView = document.getElementById('view-onboarding');
+  const dashboardView = document.getElementById('view-dashboard');
+
+  // Jika belum ada profil: Tampilkan Halaman Depan / Onboarding
   if (!profiles || profiles.length === 0) {
-    profiles = [{ id: 1, name: "Bagas" }];
+    activeProfile = null;
+    localStorage.removeItem('biba_active_profile');
+    onboardingView.classList.remove('hidden');
+    dashboardView.classList.add('hidden');
+    const inputName = document.getElementById('input-onboarding-name');
+    if (inputName) inputName.focus();
+    return;
   }
+
+  // Jika sudah ada profil: Tampilkan Dashboard
+  onboardingView.classList.add('hidden');
+  dashboardView.classList.remove('hidden');
 
   const savedId = localStorage.getItem('biba_active_profile');
   activeProfile = profiles.find(p => p.id === Number(savedId)) || profiles[0];
@@ -56,6 +72,40 @@ async function loadProfiles() {
 
   updateProfileViews();
   await loadHabits();
+}
+
+async function handleOnboardingSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('input-onboarding-name');
+  const name = input.value.trim();
+  if (!name) return;
+
+  try {
+    const res = await fetch('/api/profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+
+    if (res.ok) {
+      const newP = await res.json();
+      profiles = [newP];
+      activeProfile = newP;
+      localStorage.setItem('biba_active_profile', newP.id);
+      input.value = '';
+
+      // Alihkan ke Dashboard
+      document.getElementById('view-onboarding').classList.add('hidden');
+      document.getElementById('view-dashboard').classList.remove('hidden');
+
+      updateProfileViews();
+      await loadHabits();
+    } else {
+      alert("Gagal membuat profil baru.");
+    }
+  } catch (err) {
+    alert("Terjadi kesalahan saat membuat profil.");
+  }
 }
 
 function updateProfileViews() {
@@ -168,12 +218,8 @@ async function promptRenameProfile() {
 
 async function confirmDeleteProfile() {
   if (!activeProfile) return;
-  if (profiles.length <= 1) {
-    alert("Tidak dapat menghapus satu-satunya profil yang tersisa.");
-    return;
-  }
 
-  if (!confirm(`Hapus profil "${activeProfile.name}" beserta semua kebiasaannya?`)) return;
+  if (!confirm(`Hapus profil "${activeProfile.name}" beserta seluruh kebiasaannya?`)) return;
 
   try {
     const res = await fetch(`/api/profiles/${activeProfile.id}`, {
@@ -181,7 +227,17 @@ async function confirmDeleteProfile() {
     });
     if (res.ok) {
       profiles = profiles.filter(p => p.id !== activeProfile.id);
-      await selectProfile(profiles[0].id);
+      if (profiles.length === 0) {
+        // Kembali ke halaman depan onboarding jika semua profil terhapus
+        activeProfile = null;
+        localStorage.removeItem('biba_active_profile');
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-onboarding').classList.remove('hidden');
+        const input = document.getElementById('input-onboarding-name');
+        if (input) input.focus();
+      } else {
+        await selectProfile(profiles[0].id);
+      }
     }
   } catch (err) {
     alert("Gagal menghapus profil.");

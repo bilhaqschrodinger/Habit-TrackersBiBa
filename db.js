@@ -9,7 +9,7 @@ try {
     dataDir = app.getPath('userData');
   }
 } catch (e) {
-  // Pure node
+  // Pure node environment
 }
 
 if (!fs.existsSync(dataDir)) {
@@ -21,11 +21,8 @@ const dbPath = path.join(dataDir, 'habittrack.json');
 function readDb() {
   if (!fs.existsSync(dbPath)) {
     const initData = {
-      profiles: [{ id: 1, name: "Bagas", created_at: new Date().toISOString() }],
-      habits: [
-        { id: 1, profile_id: 1, name: "Membaca buku 20 menit", category: "Belajar", frequency: "daily", current_streak: 3, longest_streak: 5, created_at: new Date().toISOString() },
-        { id: 2, profile_id: 1, name: "Jogging pagi atau jalan santai", category: "Kesehatan", frequency: "daily", current_streak: 2, longest_streak: 4, created_at: new Date().toISOString() }
-      ],
+      profiles: [],
+      habits: [],
       checkins: []
     };
     fs.writeFileSync(dbPath, JSON.stringify(initData, null, 2), 'utf-8');
@@ -34,15 +31,13 @@ function readDb() {
   try {
     const raw = fs.readFileSync(dbPath, 'utf-8');
     const parsed = JSON.parse(raw);
-    if (!parsed.profiles || parsed.profiles.length === 0) {
-      parsed.profiles = [{ id: 1, name: "Bagas", created_at: new Date().toISOString() }];
-    }
+    if (!parsed.profiles) parsed.profiles = [];
     if (!parsed.habits) parsed.habits = [];
     if (!parsed.checkins) parsed.checkins = [];
     return parsed;
   } catch (e) {
     return {
-      profiles: [{ id: 1, name: "Bagas", created_at: new Date().toISOString() }],
+      profiles: [],
       habits: [],
       checkins: []
     };
@@ -67,9 +62,10 @@ const db = {
     },
     create(name) {
       const data = readDb();
+      const trimmed = name.trim();
       const newProfile = {
         id: data.profiles.length > 0 ? Math.max(...data.profiles.map(p => p.id)) + 1 : 1,
-        name: name.trim() || 'User Baru',
+        name: trimmed,
         created_at: new Date().toISOString()
       };
       data.profiles.push(newProfile);
@@ -88,14 +84,13 @@ const db = {
     },
     delete(id) {
       const data = readDb();
-      if (data.profiles.length <= 1) {
-        return false; // Sisakan minimal 1 profil
-      }
-      data.profiles = data.profiles.filter(p => p.id !== Number(id));
-      // Cascade delete habits & checkins milik profil ini
-      const deletedHabits = data.habits.filter(h => h.profile_id === Number(id));
+      const targetId = Number(id);
+      data.profiles = data.profiles.filter(p => p.id !== targetId);
+
+      // Cascade delete habits & checkins belonging to this profile
+      const deletedHabits = data.habits.filter(h => h.profile_id === targetId);
       const deletedHabitIds = deletedHabits.map(h => h.id);
-      data.habits = data.habits.filter(h => h.profile_id !== Number(id));
+      data.habits = data.habits.filter(h => h.profile_id !== targetId);
       data.checkins = data.checkins.filter(c => !deletedHabitIds.includes(c.habit_id));
       writeDb(data);
       return true;
@@ -176,6 +171,6 @@ const db = {
   }
 };
 
-console.log("✅ Database lokal profil siap:", dbPath);
+console.log("✅ Database lokal bersih siap:", dbPath);
 
 module.exports = db;
