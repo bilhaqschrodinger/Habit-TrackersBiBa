@@ -1,7 +1,7 @@
 {
   "name": "habit-trackersbiba",
   "version": "1.0.0",
-  "description": "��#\u0000 \u0000H\u0000a\u0000b\u0000i\u0000t\u0000-\u0000T\u0000r\u0000a\u0000c\u0000k\u0000e\u0000r\u0000s\u0000B\u0000i\u0000B\u0000a\u0000\r\u0000 \u0000",
+  "description": "Aplikasi desktop pelacak kebiasaan dan konsistensi mandiri.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -22,11 +22,9 @@
   },
   "homepage": "https://github.com/bilhaqschrodinger/Habit-TrackersBiBa#readme",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "electron": "^44.5.1",
