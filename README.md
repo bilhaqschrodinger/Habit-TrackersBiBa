@@ -6,13 +6,9 @@ Aplikasi desktop pelacak kebiasaan (*Habit Tracker*) mandiri untuk Windows, diba
 
 ## Tangkapan Layar
 
-<!-- Silakan isi path atau link gambar tangkapan layar di bawah ini -->
-![Tampilan Dashboard](screenshot-dashboard.png)
-
-*Halaman Utama Habit Tracker BiBa dengan ringkasan progres dan daftar kebiasaan.*
-
-<!-- Tambahkan screenshot onboarding atau profil jika diperlukan -->
-<!-- ![Halaman Awal Onboarding](screenshot-onboarding.png) -->
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/19529bf5-e5e8-46cc-b2f1-821a2b5d4efd" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/c1aa3893-0375-4785-b297-43adc44587ce" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/558c8665-c898-4db0-99f8-85e2e3fb5711" />
 
 ---
 
@@ -41,46 +37,18 @@ Bagi pengguna yang ingin langsung memakai aplikasi tanpa membuka terminal atau m
 ### 2. Menjalankan via Terminal (Mode Development)
 Jika Anda ingin menjalankan aplikasi dari kode sumber:
 ```bash
-# 1. Unduh dependensi (cukup sekali di awal)
+# 1. Unduh dependensi
 npm install
 
 # 2. Jalankan aplikasi desktop
 npm start
 ```
 
-*(Opsional)* Untuk menjalankan server web saja tanpa jendela Electron:
+Untuk menjalankan server web saja tanpa jendela Electron:
 ```bash
 npm run server
 ```
 Lalu buka browser di `http://localhost:5000`.
-
----
-
-## Panduan Membuat File .exe (Build Manual)
-
-Berikut adalah panduan detail untuk mengemas aplikasi menjadi file executable Windows (`.exe`):
-
-### Metode 1: Membuat Portable App Folder (Paling Cepat dan Praktis)
-Metode ini langsung menyusun aplikasi ke dalam folder siap pakai tanpa perlu mengunduh modul installer eksternal dari internet:
-
-1. Buka terminal di folder proyek.
-2. Jalankan perintah:
-   ```bash
-   npx electron-builder --win --dir
-   ```
-3. Setelah selesai, buka folder **`dist/win-unpacked/`**.
-4. Di dalamnya terdapat file utama **`Habit Tracker BiBa.exe`**.
-5. Untuk membagikannya ke GitHub Releases, cukup kompres folder `win-unpacked` tersebut menjadi file `.zip` (misal: `Habit-Tracker-BiBa-v1.0.0-win-x64.zip`) lalu unggah ke menu Releases.
-
-### Metode 2: Membuat File Installer Tunggal (Setup.exe)
-Metode ini menghasilkan file installer mandiri bertipe NSIS:
-
-1. Pastikan koneksi internet stabil (disarankan menggunakan VPN atau DNS cepat seperti 1.1.1.1 untuk menghindari kendala unduhan modul NSIS dari server GitHub).
-2. Jalankan perintah:
-   ```bash
-   npm run dist
-   ```
-3. Hasil file instalasi akan muncul di folder `dist/` dengan nama **`Habit Tracker BiBa Setup 1.0.0.exe`**.
 
 ---
 
